@@ -1,3 +1,5 @@
+import time
+START = time.time()
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, Request
@@ -27,8 +29,13 @@ class ReplyRequest(BaseModel):
     context_id: Optional[str] = None
 
 @app.get("/v1/healthz")
-def healthz():
-    return {"status": "ok"}
+async def healthz():
+    counts = {"category": 0, "merchant": 0, "customer": 0, "trigger": 0}
+    for (scope, _) in STORE.keys():
+        counts[scope] = counts.get(scope, 0) + 1
+    return {"status": "ok",
+            "uptime_seconds": int(time.time() - START),
+            "contexts_loaded": counts}
 
 @app.get("/v1/metadata")
 async def metadata():
